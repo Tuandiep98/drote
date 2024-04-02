@@ -46,7 +46,7 @@ class CanvasSideBar extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final undoRedoStack = useState(
-      _UndoRedoStack(
+      UndoRedoStack(
         sketchesNotifier: allSketches,
         currentSketchNotifier: currentSketch,
       ),
@@ -85,13 +85,13 @@ class CanvasSideBar extends HookWidget {
               spacing: 5,
               runSpacing: 5,
               children: [
-                _IconBox(
+                IconBox(
                   iconData: FontAwesomeIcons.pencil,
                   selected: drawingMode.value == DrawingMode.pencil,
                   onTap: () => drawingMode.value = DrawingMode.pencil,
                   tooltip: 'Pencil',
                 ),
-                _IconBox(
+                IconBox(
                   selected: drawingMode.value == DrawingMode.line,
                   onTap: () => drawingMode.value = DrawingMode.line,
                   tooltip: 'Line',
@@ -108,25 +108,25 @@ class CanvasSideBar extends HookWidget {
                     ],
                   ),
                 ),
-                _IconBox(
+                IconBox(
                   iconData: Icons.hexagon_outlined,
                   selected: drawingMode.value == DrawingMode.polygon,
                   onTap: () => drawingMode.value = DrawingMode.polygon,
                   tooltip: 'Polygon',
                 ),
-                _IconBox(
+                IconBox(
                   iconData: FontAwesomeIcons.eraser,
                   selected: drawingMode.value == DrawingMode.eraser,
                   onTap: () => drawingMode.value = DrawingMode.eraser,
                   tooltip: 'Eraser',
                 ),
-                _IconBox(
+                IconBox(
                   iconData: FontAwesomeIcons.square,
                   selected: drawingMode.value == DrawingMode.square,
                   onTap: () => drawingMode.value = DrawingMode.square,
                   tooltip: 'Square',
                 ),
-                _IconBox(
+                IconBox(
                   iconData: FontAwesomeIcons.circle,
                   selected: drawingMode.value == DrawingMode.circle,
                   onTap: () => drawingMode.value = DrawingMode.circle,
@@ -253,7 +253,7 @@ class CanvasSideBar extends HookWidget {
                     if (backgroundImage.value != null) {
                       backgroundImage.value = null;
                     } else {
-                      backgroundImage.value = await _getImage;
+                      backgroundImage.value = await getImage;
                     }
                   },
                   child: Text(
@@ -320,7 +320,7 @@ class CanvasSideBar extends HookWidget {
     }
   }
 
-  Future<ui.Image> get _getImage async {
+  Future<ui.Image> get getImage async {
     final completer = Completer<ui.Image>();
     if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
       final file = await FilePicker.platform.pickFiles(
@@ -376,14 +376,14 @@ class CanvasSideBar extends HookWidget {
   }
 }
 
-class _IconBox extends StatelessWidget {
+class IconBox extends StatelessWidget {
   final IconData? iconData;
   final Widget? child;
   final bool selected;
   final VoidCallback onTap;
   final String? tooltip;
 
-  const _IconBox({
+  const IconBox({
     Key? key,
     this.iconData,
     this.child,
@@ -403,12 +403,11 @@ class _IconBox extends StatelessWidget {
           height: 35,
           width: 35,
           decoration: BoxDecoration(
-            border: Border.all(
-              color: selected ? Colors.grey[900]! : Colors.grey,
-              width: 1.5,
-            ),
-            borderRadius: const BorderRadius.all(Radius.circular(5)),
-          ),
+              border: Border.all(
+                color: selected ? Colors.grey[900]! : Colors.grey,
+                width: 1.5,
+              ),
+              shape: BoxShape.circle),
           child: Tooltip(
             message: tooltip,
             preferBelow: false,
@@ -426,8 +425,8 @@ class _IconBox extends StatelessWidget {
 }
 
 ///A data structure for undoing and redoing sketches.
-class _UndoRedoStack {
-  _UndoRedoStack({
+class UndoRedoStack {
+  UndoRedoStack({
     required this.sketchesNotifier,
     required this.currentSketchNotifier,
   }) {

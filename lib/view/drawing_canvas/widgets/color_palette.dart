@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -13,6 +14,7 @@ class ColorPalette extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    double size = kIsWeb ? 40 : 35;
     List<Color> colors = [
       Colors.black,
       Colors.white,
@@ -25,8 +27,8 @@ class ColorPalette extends HookWidget {
       children: [
         Wrap(
           alignment: WrapAlignment.center,
-          spacing: 2,
-          runSpacing: 2,
+          spacing: kIsWeb ? 5 : 3,
+          runSpacing: kIsWeb ? 5 : 3,
           children: [
             for (Color color in colors)
               MouseRegion(
@@ -34,37 +36,21 @@ class ColorPalette extends HookWidget {
                 child: GestureDetector(
                   onTap: () => selectedColor.value = color,
                   child: Container(
-                    height: 25,
-                    width: 25,
+                    height: size,
+                    width: size,
                     decoration: BoxDecoration(
                       color: color,
                       border: Border.all(
                         color: selectedColor.value == color
-                            ? Colors.blue
+                            ? Colors.green
                             : Colors.grey,
-                        width: 1.5,
+                        width: 0.1,
                       ),
-                      borderRadius: const BorderRadius.all(Radius.circular(5)),
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 30,
-              width: 30,
-              decoration: BoxDecoration(
-                color: selectedColor.value,
-                border: Border.all(color: Colors.blue, width: 1.5),
-                borderRadius: const BorderRadius.all(Radius.circular(5)),
-              ),
-            ),
-            const SizedBox(width: 10),
             MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
@@ -73,13 +59,14 @@ class ColorPalette extends HookWidget {
                 },
                 child: SvgPicture.asset(
                   'assets/svgs/color_wheel.svg',
-                  height: 30,
-                  width: 30,
+                  height: size,
+                  width: size,
                 ),
               ),
             ),
           ],
         ),
+        const SizedBox(height: 5),
       ],
     );
   }

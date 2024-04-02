@@ -332,6 +332,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "popover",
+      "rootUri": "file:///Users/dieptuan/.pub-cache/hosted/pub.dev/popover-0.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "sky_engine",
       "rootUri": "file:///Users/dieptuan/fvm/versions/3.16.9/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
@@ -494,7 +500,7 @@
       "languageVersion": "3.2"
     }
   ],
-  "generated": "2024-03-31T16:23:17.570285Z",
+  "generated": "2024-04-02T17:50:27.525585Z",
   "generator": "pub",
   "generatorVersion": "3.2.6"
 }
