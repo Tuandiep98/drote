@@ -3,42 +3,26 @@ import 'dart:ui';
 
 import 'package:drote/core/hive_database/entities/sketch_entity/sketch_entity.dart';
 import 'package:drote/core/utils/enum.dart';
+import 'package:drote/core/utils/hex_color_extension.dart';
 import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
 import 'package:flutter/material.dart' hide Image;
 import 'package:drote/main.dart';
 import 'package:drote/screens/drawing_canvas/models/drawing_mode.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 class DrawingCanvas extends StatefulWidget {
   final double height;
   final double width;
-  final Color selectedColor;
-  final double strokeSize;
-  final Image? backgroundImage;
-  final double eraserSize;
-  final DrawingMode drawingMode;
   final AnimationController sideBarController;
-  final SketchEntity? currentSketch;
-  final List<SketchEntity> allSketches;
   final GlobalKey canvasGlobalKey;
-  final int polygonSides;
-  final bool filled;
   const DrawingCanvas({
     Key? key,
     required this.height,
     required this.width,
-    required this.selectedColor,
-    required this.strokeSize,
-    required this.backgroundImage,
-    required this.eraserSize,
-    required this.drawingMode,
     required this.sideBarController,
-    required this.currentSketch,
-    required this.allSketches,
     required this.canvasGlobalKey,
-    required this.polygonSides,
-    required this.filled,
   }) : super(key: key);
   @override
   DrawingCanvasState createState() => DrawingCanvasState();
@@ -55,14 +39,52 @@ class DrawingCanvasState extends State<DrawingCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.precise,
-      child: Stack(
-        children: [
-          buildAllSketches(context),
-          buildCurrentPath(context),
-        ],
-      ),
+    return Consumer<IBoardViewModel>(
+      builder: (_, viewmodel, __) {
+        return MouseRegion(
+          cursor: SystemMouseCursors.precise,
+          child: Stack(
+            children: [
+              SizedBox(
+                height: widget.height,
+                width: widget.width,
+                child: RepaintBoundary(
+                  key: widget.canvasGlobalKey,
+                  child: Container(
+                    height: widget.height,
+                    width: widget.width,
+                    color: kCanvasColor,
+                    child: CustomPaint(
+                      painter: SketchPainter(
+                        sketches: viewmodel.allSketches,
+                        backgroundImage: viewmodel.backgroundImage,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Listener(
+                onPointerDown: (details) => onPointerDown(details, context),
+                onPointerMove: (details) => onPointerMove(details, context),
+                onPointerUp: onPointerUp,
+                child: RepaintBoundary(
+                  child: SizedBox(
+                    height: widget.height,
+                    width: widget.width,
+                    child: CustomPaint(
+                      painter: SketchPainter(
+                        sketches: viewmodel.currentSketch == null
+                            ? []
+                            : [viewmodel.currentSketch!],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -77,20 +99,20 @@ class DrawingCanvasState extends State<DrawingCanvas> {
       boardId: _viewModel.currentBoard?.id ?? const Uuid().v4(),
       createdTime: DateTime.now(),
       points: [offsetMap],
-      size: widget.drawingMode == DrawingMode.eraser
-          ? widget.eraserSize
-          : widget.strokeSize,
-      color: widget.drawingMode == DrawingMode.eraser
-          ? kCanvasColor.hashCode
-          : widget.selectedColor.hashCode,
-      sides: widget.polygonSides,
-      filled: widget.drawingMode == DrawingMode.line ||
-              widget.drawingMode == DrawingMode.pencil ||
-              widget.drawingMode == DrawingMode.eraser
+      size: _viewModel.drawingMode == DrawingMode.eraser
+          ? _viewModel.eraserSize
+          : _viewModel.strokeSize,
+      color: _viewModel.drawingMode == DrawingMode.eraser
+          ? kCanvasColor.toHex()
+          : _viewModel.selectedColor.toHex(),
+      sides: _viewModel.polygonSides,
+      filled: _viewModel.drawingMode == DrawingMode.line ||
+              _viewModel.drawingMode == DrawingMode.pencil ||
+              _viewModel.drawingMode == DrawingMode.eraser
           ? false
-          : widget.filled,
+          : _viewModel.filled,
       type: () {
-        switch (widget.drawingMode) {
+        switch (_viewModel.drawingMode) {
           case DrawingMode.eraser:
           case DrawingMode.pencil:
             return SketchType.scribble;
@@ -113,73 +135,40 @@ class DrawingCanvasState extends State<DrawingCanvas> {
   void onPointerMove(PointerMoveEvent details, BuildContext context) {
     final box = context.findRenderObject() as RenderBox;
     final offset = box.globalToLocal(details.position);
-    final points = List<Offset>.from(widget.currentSketch?.points ?? [])
-      ..add(offset);
-    var offsetsMap = points
-        .map((e) => <dynamic, dynamic>{
-              'dx': offset.dx,
-              'dy': offset.dy,
-            })
-        .toList();
-
-    var sketch = SketchEntity(
-      boardId: _viewModel.currentBoard?.id ?? const Uuid().v4(),
-      createdTime: DateTime.now(),
-      points: offsetsMap,
-      size: widget.drawingMode == DrawingMode.eraser
-          ? widget.eraserSize
-          : widget.strokeSize,
-      color: widget.drawingMode == DrawingMode.eraser
-          ? kCanvasColor.hashCode
-          : widget.selectedColor.hashCode,
-      sides: widget.polygonSides,
-      filled: widget.drawingMode == DrawingMode.line ||
-              widget.drawingMode == DrawingMode.pencil ||
-              widget.drawingMode == DrawingMode.eraser
-          ? false
-          : widget.filled,
-      type: () {
-        switch (widget.drawingMode) {
-          case DrawingMode.eraser:
-          case DrawingMode.pencil:
-            return SketchType.scribble;
-          case DrawingMode.line:
-            return SketchType.line;
-          case DrawingMode.square:
-            return SketchType.square;
-          case DrawingMode.circle:
-            return SketchType.circle;
-          case DrawingMode.polygon:
-            return SketchType.polygon;
-          default:
-            return SketchType.scribble;
-        }
-      }(),
-    );
-    _viewModel.setCurrentSketch(sketch);
+    List<Map<dynamic, dynamic>> points = [
+      ..._viewModel.currentSketch?.points ?? [],
+      <dynamic, dynamic>{
+        'dx': offset.dx,
+        'dy': offset.dy,
+      }
+    ];
+    if (_viewModel.currentSketch != null) {
+      var sketch = _viewModel.currentSketch!..points = points;
+      _viewModel.setCurrentSketch(sketch);
+    }
   }
 
   void onPointerUp(PointerUpEvent details) {
-    _viewModel.addSketchToAllSketches(widget.currentSketch!);
+    _viewModel.addSketchToAllSketches(_viewModel.currentSketch!);
 
     var sketch = SketchEntity(
       boardId: _viewModel.currentBoard?.id ?? const Uuid().v4(),
       createdTime: DateTime.now(),
       points: [],
-      size: widget.drawingMode == DrawingMode.eraser
-          ? widget.eraserSize
-          : widget.strokeSize,
-      color: widget.drawingMode == DrawingMode.eraser
-          ? kCanvasColor.hashCode
-          : widget.selectedColor.hashCode,
-      sides: widget.polygonSides,
-      filled: widget.drawingMode == DrawingMode.line ||
-              widget.drawingMode == DrawingMode.pencil ||
-              widget.drawingMode == DrawingMode.eraser
+      size: _viewModel.drawingMode == DrawingMode.eraser
+          ? _viewModel.eraserSize
+          : _viewModel.strokeSize,
+      color: _viewModel.drawingMode == DrawingMode.eraser
+          ? kCanvasColor.toHex()
+          : _viewModel.selectedColor.toHex(),
+      sides: _viewModel.polygonSides,
+      filled: _viewModel.drawingMode == DrawingMode.line ||
+              _viewModel.drawingMode == DrawingMode.pencil ||
+              _viewModel.drawingMode == DrawingMode.eraser
           ? false
-          : widget.filled,
+          : _viewModel.filled,
       type: () {
-        switch (widget.drawingMode) {
+        switch (_viewModel.drawingMode) {
           case DrawingMode.eraser:
           case DrawingMode.pencil:
             return SketchType.scribble;
@@ -197,56 +186,6 @@ class DrawingCanvasState extends State<DrawingCanvas> {
       }(),
     );
     _viewModel.setCurrentSketch(sketch);
-  }
-
-  Widget buildAllSketches(BuildContext context) {
-    return SizedBox(
-      height: widget.height,
-      width: widget.width,
-      child: Selector<IBoardViewModel, List<SketchEntity>>(
-        selector: (_ , __) => _viewModel.allSketches,
-        builder: (context, sketches, _) {
-          return RepaintBoundary(
-            key: widget.canvasGlobalKey,
-            child: Container(
-              height: widget.height,
-              width: widget.width,
-              color: kCanvasColor,
-              child: CustomPaint(
-                painter: SketchPainter(
-                  sketches: sketches,
-                  backgroundImage: widget.backgroundImage,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget buildCurrentPath(BuildContext context) {
-    return Listener(
-      onPointerDown: (details) => onPointerDown(details, context),
-      onPointerMove: (details) => onPointerMove(details, context),
-      onPointerUp: onPointerUp,
-      child: Selector0<SketchEntity?>(
-        selector: (_) => _viewModel.currentSketch,
-        builder: (context, sketch, child) {
-          return RepaintBoundary(
-            child: SizedBox(
-              height: widget.height,
-              width: widget.width,
-              child: CustomPaint(
-                painter: SketchPainter(
-                  sketches: sketch == null ? [] : [sketch],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
   }
 }
 
@@ -277,7 +216,6 @@ class SketchPainter extends CustomPainter {
       );
     }
 
-    debugPrint('sketches length: ${sketches.length}');
     for (SketchEntity sketch in sketches) {
       final points = sketch.points;
       if (points.isEmpty) return;
@@ -306,7 +244,7 @@ class SketchPainter extends CustomPainter {
       }
 
       Paint paint = Paint()
-        ..color = Color(sketch.color)
+        ..color = colorFromHex(sketch.color) ?? Colors.black
         ..strokeCap = StrokeCap.round;
 
       if (!sketch.filled) {
@@ -315,8 +253,10 @@ class SketchPainter extends CustomPainter {
       }
 
       // define first and last points for convenience
-      Offset firstPoint = Offset(sketch.points.first['dx'], sketch.points.first['dy']);
-      Offset lastPoint = Offset(sketch.points.last['dx'], sketch.points.last['dy']);
+      Offset firstPoint =
+          Offset(sketch.points.first['dx'], sketch.points.first['dy']);
+      Offset lastPoint =
+          Offset(sketch.points.last['dx'], sketch.points.last['dy']);
 
       // create rect to use rectangle and circle
       Rect rect = Rect.fromPoints(firstPoint, lastPoint);
@@ -368,6 +308,7 @@ class SketchPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant SketchPainter oldDelegate) {
-    return oldDelegate.sketches != sketches;
+    // return oldDelegate.sketches.length != sketches.length;
+    return true;
   }
 }

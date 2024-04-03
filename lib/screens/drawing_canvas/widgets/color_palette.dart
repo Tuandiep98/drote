@@ -1,11 +1,12 @@
+import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
-class ColorPalette extends HookWidget {
-  final ValueNotifier<Color> selectedColor;
+class ColorPalette extends StatelessWidget {
+  final Color selectedColor;
 
   const ColorPalette({
     Key? key,
@@ -25,53 +26,55 @@ class ColorPalette extends HookWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: kIsWeb ? 5 : 3,
-          runSpacing: kIsWeb ? 5 : 3,
-          children: [
-            for (Color color in colors)
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () => selectedColor.value = color,
-                  child: Container(
-                    height: size,
-                    width: size,
-                    decoration: BoxDecoration(
-                      color: color,
-                      border: Border.all(
-                        color: selectedColor.value == color
-                            ? Colors.green
-                            : Colors.grey,
-                        width: 0.1,
+        Consumer<IBoardViewModel>(builder: (_, viewmodel, __) {
+          return Wrap(
+            alignment: WrapAlignment.center,
+            spacing: kIsWeb ? 5 : 3,
+            runSpacing: kIsWeb ? 5 : 3,
+            children: [
+              for (Color color in colors)
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => viewmodel.setSelectedColor(color),
+                    child: Container(
+                      height: size,
+                      width: size,
+                      decoration: BoxDecoration(
+                        color: color,
+                        border: Border.all(
+                          color: selectedColor == color
+                              ? Colors.green
+                              : Colors.grey,
+                          width: 0.1,
+                        ),
+                        shape: BoxShape.circle,
                       ),
-                      shape: BoxShape.circle,
                     ),
                   ),
                 ),
-              ),
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showColorWheel(context, selectedColor);
-                },
-                child: SvgPicture.asset(
-                  'assets/svgs/color_wheel.svg',
-                  height: size,
-                  width: size,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    showColorWheel(context, selectedColor);
+                  },
+                  child: SvgPicture.asset(
+                    'assets/svgs/color_wheel.svg',
+                    height: size,
+                    width: size,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
         const SizedBox(height: 5),
       ],
     );
   }
 
-  void showColorWheel(BuildContext context, ValueNotifier<Color> color) {
+  void showColorWheel(BuildContext context, Color color) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -79,9 +82,9 @@ class ColorPalette extends HookWidget {
           title: const Text('Pick a color!'),
           content: SingleChildScrollView(
             child: ColorPicker(
-              pickerColor: color.value,
+              pickerColor: color,
               onColorChanged: (value) {
-                color.value = value;
+                context.read<IBoardViewModel>().setSelectedColor(value);
               },
             ),
           ),

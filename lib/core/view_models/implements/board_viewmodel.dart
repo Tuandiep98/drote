@@ -1,21 +1,37 @@
 // ignore_for_file: prefer_final_fields
 
+import 'dart:ui';
+
 import 'package:drote/core/hive_database/entities/board_entity/board_entity.dart';
 import 'package:drote/core/hive_database/entities/sketch_entity/sketch_entity.dart';
+import 'package:drote/core/services/interfaces/iboard_service.dart';
 import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
+import 'package:drote/global/locator.dart';
 import 'package:drote/screens/drawing_canvas/models/drawing_mode.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Image;
 
 class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
+  final _boardService = locator<IBoardService>();
+
+  List<SketchEntity> _redoStack = [];
+
+  bool _canRedo = false;
+  @override
+  bool get canRedo => _canRedo;
+
   List<SketchEntity> _allSketches = [];
   @override
   List<SketchEntity> get allSketches => _allSketches;
+
+  List<BoardEntity> _allBoards = [];
+  @override
+  List<BoardEntity> get allBoards => _allBoards;
 
   Image? _backgroundImage;
   @override
   Image? get backgroundImage => _backgroundImage;
   @override
-  void setBackgroundImage(Image image) {
+  void setBackgroundImage(Image? image) {
     _backgroundImage = image;
     notifyListeners();
   }
@@ -26,6 +42,8 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   @override
   void setCurrentSketch(SketchEntity sketchEntity) {
     _currentSketch = sketchEntity;
+    _redoStack.clear();
+    _canRedo = false;
     notifyListeners();
   }
 
@@ -100,6 +118,50 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   @override
   void setCurrentBoard(BoardEntity boardEntity) {
     _currentBoard = boardEntity;
+    notifyListeners();
+  }
+
+  @override
+  void undo() {
+    if (_allSketches.isNotEmpty) {
+      var sketch = _allSketches.removeLast();
+      _redoStack.add(sketch);
+      _canRedo = true;
+      _currentSketch = null;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void redo() {
+    if (_redoStack.isEmpty) return;
+    final sketch = _redoStack.removeLast();
+    _canRedo = _redoStack.isNotEmpty;
+    _allSketches = [..._allSketches, sketch];
+    notifyListeners();
+  }
+
+  @override
+  void clear() {
+    _allSketches = [];
+    _canRedo = false;
+    _currentSketch = null;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> init() async {
+    _allBoards.clear();
+    _allBoards = _boardService.getAllBoards();
+
+    if (_allBoards.isEmpty) {
+      var newBoard = BoardEntity(
+        name: 'New Board',
+        createdTime: DateTime.now(),
+      );
+      await _boardService.createBoard(newBoard);
+      _currentBoard = newBoard;
+    }
     notifyListeners();
   }
 }

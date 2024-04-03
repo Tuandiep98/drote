@@ -15,7 +15,7 @@ class SketchEntity extends BaseEntity {
   @HiveField(4)
   List<Map> points; // offset dx, dy
   @HiveField(5)
-  int color;
+  String color; // hex color
   @HiveField(6)
   double size;
   @HiveField(7)
@@ -31,7 +31,7 @@ class SketchEntity extends BaseEntity {
     required this.createdTime,
     this.createdBy = '',
     this.points = const [],
-    this.color = 0xFF000000,
+    this.color = '#000000',
     this.size = 1,
     this.type = SketchType.scribble,
     this.filled = false,

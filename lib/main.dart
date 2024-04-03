@@ -1,7 +1,7 @@
 import 'package:drote/global/locator.dart';
 import 'package:drote/global/providers.dart';
+import 'package:drote/screens/home_screen/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:drote/screens/drawing_page.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         title: 'Drote',
         theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: false),
         debugShowCheckedModeBanner: false,
-        home: const DrawingPage(),
+        home: const HomeScreen(),
       ),
     );
   }

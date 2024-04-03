@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'canvas_side_bar.dart';
+import 'icon_box.dart';
 
 class PencilWidget extends StatelessWidget {
   const PencilWidget({super.key});
@@ -25,7 +25,7 @@ class PencilWidget extends StatelessWidget {
                 IconBox(
                   iconData: FontAwesomeIcons.pencil,
                   selected: viewModel.drawingMode == DrawingMode.pencil,
-                  onTap: () => _,
+                  onTap: () => viewModel.setDrawingMode(DrawingMode.pencil),
                   tooltip: 'Pencil',
                 ),
                 IconBox(

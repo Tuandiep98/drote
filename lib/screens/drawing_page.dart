@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
+import 'package:drote/screens/drawing_canvas/widgets/stroke_size.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/cupertino.dart' as cuper;
@@ -13,10 +14,7 @@ import 'package:flutter/material.dart' hide Image;
 import 'package:drote/main.dart';
 import 'package:drote/screens/drawing_canvas/drawing_canvas.dart';
 import 'package:drote/screens/drawing_canvas/models/drawing_mode.dart';
-import 'package:drote/screens/drawing_canvas/models/sketch.dart';
-import 'package:drote/screens/drawing_canvas/widgets/canvas_side_bar.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:popover/popover.dart';
@@ -33,31 +31,16 @@ class DrawingPage extends StatefulWidget {
   _DrawingPageState createState() => _DrawingPageState();
 }
 
-class _DrawingPageState extends State<DrawingPage> {
+class _DrawingPageState extends State<DrawingPage>
+    with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final canvasGlobalKey = GlobalKey();
 
-    final selectedColor = useState(Colors.black);
-    final strokeSize = useState<double>(10);
-    final eraserSize = useState<double>(30);
-    final filled = useState<bool>(false);
-    final polygonSides = useState<int>(3);
-    final backgroundImage = useState<Image?>(null);
-
-    ValueNotifier<Sketch?> currentSketch = useState(null);
-    ValueNotifier<List<Sketch>> allSketches = useState([]);
-
-    final animationController = useAnimationController(
+    final animationController = AnimationController(
       duration: const Duration(milliseconds: 150),
-      initialValue: 1,
-    );
-
-    final undoRedoStack = useState(
-      UndoRedoStack(
-        sketchesNotifier: allSketches,
-        currentSketchNotifier: currentSketch,
-      ),
+      value: 1,
+      vsync: this,
     );
 
     Future<Uint8List?> getBytes() async {
@@ -80,17 +63,8 @@ class _DrawingPageState extends State<DrawingPage> {
               child: DrawingCanvas(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
-                drawingMode: viewmodel.drawingMode,
-                selectedColor: selectedColor,
-                strokeSize: strokeSize,
-                eraserSize: eraserSize,
                 sideBarController: animationController,
-                currentSketch: currentSketch,
-                allSketches: allSketches,
                 canvasGlobalKey: canvasGlobalKey,
-                filled: filled,
-                polygonSides: polygonSides,
-                backgroundImage: backgroundImage,
               ),
             ),
             Align(
@@ -115,8 +89,11 @@ class _DrawingPageState extends State<DrawingPage> {
                             builder: (_, drawingMode, ___) {
                               var icon = Icons.edit;
                               switch (drawingMode) {
+                                case DrawingMode.pencil:
+                                  icon = Icons.edit;
+                                  break;
                                 case DrawingMode.line:
-                                  icon = Icons.line_axis;
+                                  icon = FontAwesomeIcons.minus;
                                   break;
                                 case DrawingMode.arrow:
                                   icon = Icons.arrow_back;
@@ -126,6 +103,12 @@ class _DrawingPageState extends State<DrawingPage> {
                                   break;
                                 case DrawingMode.polygon:
                                   icon = Icons.hexagon_outlined;
+                                  break;
+                                case DrawingMode.square:
+                                  icon = Icons.crop_square_rounded;
+                                  break;
+                                case DrawingMode.circle:
+                                  icon = FontAwesomeIcons.circle;
                                   break;
                                 default:
                                   icon = Icons.edit;
@@ -158,46 +141,8 @@ class _DrawingPageState extends State<DrawingPage> {
                             await showPopover(
                               context: currentContext,
                               barrierColor: Colors.transparent,
-                              bodyBuilder: (context) => cuper.Padding(
-                                padding: const EdgeInsets.all(15),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Stroke Size: ',
-                                          style: TextStyle(fontSize: 12),
-                                        ),
-                                        Slider(
-                                          value: strokeSize.value,
-                                          min: 0,
-                                          max: 50,
-                                          onChanged: (val) {
-                                            strokeSize.value = val;
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Eraser Size: ',
-                                          style: TextStyle(fontSize: 12),
-                                        ),
-                                        Slider(
-                                          value: eraserSize.value,
-                                          min: 0,
-                                          max: 80,
-                                          onChanged: (val) {
-                                            eraserSize.value = val;
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              bodyBuilder: (context) =>
+                                  const StrokeSizeWidget(),
                               onPop: () {},
                               direction: PopoverDirection.bottom,
                               width: 300,
@@ -210,28 +155,23 @@ class _DrawingPageState extends State<DrawingPage> {
                           context: context,
                           icon: cuper.CupertinoIcons.arrow_turn_up_left,
                           tooltip: 'Undo',
-                          onPressed: allSketches.value.isNotEmpty
-                              ? (context) => undoRedoStack.value.undo()
+                          onPressed: viewmodel.allSketches.isNotEmpty
+                              ? (context) => viewmodel.undo()
                               : null,
                         ),
-                        ValueListenableBuilder<bool>(
-                          valueListenable: undoRedoStack.value.canRedo,
-                          builder: (_, canRedo, __) {
-                            return RawButton(
-                              context: context,
-                              icon: cuper.CupertinoIcons.arrow_turn_up_right,
-                              tooltip: 'Redo',
-                              onPressed: canRedo
-                                  ? (context) => undoRedoStack.value.redo()
-                                  : null,
-                            );
-                          },
+                        RawButton(
+                          context: context,
+                          icon: cuper.CupertinoIcons.arrow_turn_up_right,
+                          tooltip: 'Redo',
+                          onPressed: viewmodel.canRedo
+                              ? (context) => viewmodel.redo()
+                              : null,
                         ),
                         RawButton(
                           context: context,
                           icon: cuper.CupertinoIcons.delete_simple,
                           tooltip: 'Clear',
-                          onPressed: (context) => undoRedoStack.value.clear(),
+                          onPressed: (context) => viewmodel.clear(),
                         ),
                         RawButton(
                           context: context,
@@ -242,8 +182,8 @@ class _DrawingPageState extends State<DrawingPage> {
                             height: 20,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: selectedColor.value,
-                              border: selectedColor.value == Colors.white
+                              color: viewmodel.selectedColor,
+                              border: viewmodel.selectedColor == Colors.white
                                   ? Border.all(
                                       color: Colors.grey,
                                       width: 0.2,
@@ -256,9 +196,9 @@ class _DrawingPageState extends State<DrawingPage> {
                               context: currentContext,
                               barrierColor: Colors.transparent,
                               bodyBuilder: (context) => cuper.Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(15),
                                 child: ColorPalette(
-                                  selectedColor: selectedColor,
+                                  selectedColor: viewmodel.selectedColor,
                                 ),
                               ),
                               onPop: () {},
@@ -271,19 +211,19 @@ class _DrawingPageState extends State<DrawingPage> {
                         ),
                         RawButton(
                           context: context,
-                          icon: backgroundImage.value == null
+                          icon: viewmodel.backgroundImage == null
                               ? cuper.CupertinoIcons.photo_on_rectangle
                               : cuper
                                   .CupertinoIcons.photo_fill_on_rectangle_fill,
-                          tooltip: backgroundImage.value == null
+                          tooltip: viewmodel.backgroundImage == null
                               ? 'Add background image'
                               : 'Remove background image',
                           onPressed: (context) async {
                             try {
-                              if (backgroundImage.value != null) {
-                                backgroundImage.value = null;
+                              if (viewmodel.backgroundImage != null) {
+                                viewmodel.setBackgroundImage(null);
                               } else {
-                                backgroundImage.value = await getImage;
+                                viewmodel.setBackgroundImage(await getImage);
                               }
                             } catch (e) {
                               debugPrint(e.toString());
