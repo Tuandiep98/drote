@@ -3,9 +3,11 @@ import 'package:uuid/uuid.dart';
 
 class BaseEntity {
   @HiveField(0)
-  String id = const Uuid().v4();
+  String id = '';
 
   BaseEntity(){
-    id = const Uuid().v4();
+    if(id == ''){
+      id = const Uuid().v4();
+    }
   }
 }

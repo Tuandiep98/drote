@@ -23,7 +23,7 @@ class BoardEntity extends BaseEntity {
   double height;
 
   BoardEntity({
-    required String id,
+    String id = '',
     this.name = '',
     this.code = '',
     this.createdBy = '',

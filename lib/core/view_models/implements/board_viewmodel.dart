@@ -9,7 +9,6 @@ import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
 import 'package:drote/global/locator.dart';
 import 'package:drote/screens/drawing_canvas/models/drawing_mode.dart';
 import 'package:flutter/material.dart' hide Image;
-import 'package:uuid/uuid.dart';
 
 class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   final _boardService = locator<IBoardService>();
@@ -161,7 +160,7 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
 
     if (_allBoards.isEmpty) {
       var newBoard = BoardEntity(
-        id: const Uuid().v4(),
+        id: 'board-1',
         name: 'New Board',
         createdTime: DateTime.now(),
       );
