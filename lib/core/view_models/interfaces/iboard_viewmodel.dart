@@ -1,0 +1,28 @@
+import 'package:drote/core/hive_database/entities/board_entity/board_entity.dart';
+import 'package:drote/core/hive_database/entities/sketch_entity/sketch_entity.dart';
+import 'package:drote/screens/drawing_canvas/models/drawing_mode.dart';
+import 'package:flutter/material.dart';
+
+abstract class IBoardViewModel extends ChangeNotifier {
+  Color get selectedColor;
+  double get strokeSize;
+  double get eraserSize;
+  DrawingMode get drawingMode;
+  bool get filled;
+  int get polygonSides;
+  Image? get backgroundImage;
+  SketchEntity? get currentSketch;
+  List<SketchEntity> get allSketches;
+  BoardEntity? get currentBoard;
+
+  void setBackgroundImage(Image image);
+  void setCurrentSketch(SketchEntity sketchEntity);
+  void setDrawingMode(DrawingMode drawingMode);
+  void setEraserSize(double size);
+  void setFilled(bool value);
+  void setPolygonSides(int value);
+  void setSelectedColor(Color value);
+  void setStrokeSize(double value);
+  void setCurrentBoard(BoardEntity boardEntity);
+  void addSketchToAllSketches(SketchEntity currentSketch);
+}

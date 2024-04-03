@@ -1,7 +1,12 @@
+import 'package:drote/global/locator.dart';
+import 'package:drote/global/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:drote/view/drawing_page.dart';
+import 'package:drote/screens/drawing_page.dart';
+import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await setupLocator();
   runApp(const MyApp());
 }
 
@@ -10,14 +15,16 @@ const Color kCanvasColor = Color(0xfff2f3f7);
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Drote',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: false),
-      debugShowCheckedModeBanner: false,
-      home: const DrawingPage(),
+    return MultiProvider(
+      providers: [...viewModelProviders],
+      child: MaterialApp(
+        title: 'Drote',
+        theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: false),
+        debugShowCheckedModeBanner: false,
+        home: const DrawingPage(),
+      ),
     );
   }
 }
