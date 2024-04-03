@@ -23,7 +23,7 @@ class BoardEntity extends BaseEntity {
   double height;
 
   BoardEntity({
-    String id = '',
+    required String id,
     this.name = '',
     this.code = '',
     this.createdBy = '',
@@ -32,5 +32,7 @@ class BoardEntity extends BaseEntity {
     this.backgroundColor = '',
     this.width = 1000,
     this.height = 2000,
-  });
+  }) : super() {
+    id = this.id;
+  }
 }

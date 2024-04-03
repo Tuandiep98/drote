@@ -96,6 +96,7 @@ class DrawingCanvasState extends State<DrawingCanvas> {
       'dy': offset.dy,
     };
     var sketch = SketchEntity(
+      id: const Uuid().v4(),
       boardId: _viewModel.currentBoard?.id ?? const Uuid().v4(),
       createdTime: DateTime.now(),
       points: [offsetMap],
@@ -148,10 +149,16 @@ class DrawingCanvasState extends State<DrawingCanvas> {
     }
   }
 
-  void onPointerUp(PointerUpEvent details) {
+  Future<void> onPointerUp(PointerUpEvent details) async {
+    if (_viewModel.currentSketch != null && _viewModel.currentBoard != null) {
+      await _viewModel.insertSketchToBoard(
+          _viewModel.currentSketch!, _viewModel.currentBoard!.id);
+    }
+
     _viewModel.addSketchToAllSketches(_viewModel.currentSketch!);
 
     var sketch = SketchEntity(
+      id: const Uuid().v4(),
       boardId: _viewModel.currentBoard?.id ?? const Uuid().v4(),
       createdTime: DateTime.now(),
       points: [],

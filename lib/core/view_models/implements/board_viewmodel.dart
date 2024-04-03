@@ -9,6 +9,7 @@ import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
 import 'package:drote/global/locator.dart';
 import 'package:drote/screens/drawing_canvas/models/drawing_mode.dart';
 import 'package:flutter/material.dart' hide Image;
+import 'package:uuid/uuid.dart';
 
 class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   final _boardService = locator<IBoardService>();
@@ -118,13 +119,15 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   @override
   void setCurrentBoard(BoardEntity boardEntity) {
     _currentBoard = boardEntity;
+    _allSketches = _boardService.getAllSketches(boardEntity.id);
     notifyListeners();
   }
 
   @override
-  void undo() {
+  Future<void> undo() async {
     if (_allSketches.isNotEmpty) {
       var sketch = _allSketches.removeLast();
+      await _boardService.removeSketch(sketch);
       _redoStack.add(sketch);
       _canRedo = true;
       _currentSketch = null;
@@ -133,19 +136,21 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   }
 
   @override
-  void redo() {
+  Future<void> redo() async {
     if (_redoStack.isEmpty) return;
     final sketch = _redoStack.removeLast();
     _canRedo = _redoStack.isNotEmpty;
+    await _boardService.insertSketchToBoard(sketch, _currentBoard!.id);
     _allSketches = [..._allSketches, sketch];
     notifyListeners();
   }
 
   @override
-  void clear() {
+  Future<void> clear() async {
     _allSketches = [];
     _canRedo = false;
     _currentSketch = null;
+    await _boardService.clearSketchesOfBoard(_currentBoard!.id);
     notifyListeners();
   }
 
@@ -156,6 +161,7 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
 
     if (_allBoards.isEmpty) {
       var newBoard = BoardEntity(
+        id: const Uuid().v4(),
         name: 'New Board',
         createdTime: DateTime.now(),
       );
@@ -163,5 +169,11 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
       _currentBoard = newBoard;
     }
     notifyListeners();
+  }
+
+  @override
+  Future<void> insertSketchToBoard(
+      SketchEntity sketchEntity, String boardId) async {
+    await _boardService.insertSketchToBoard(sketchEntity, boardId);
   }
 }

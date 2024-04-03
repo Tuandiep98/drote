@@ -2,6 +2,7 @@ import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
 import 'package:drote/screens/drawing_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,61 +32,82 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<IBoardViewModel>(builder: (_, viewmodel, __) {
-      return Scaffold(
-        body: GridView.count(
-          padding: const EdgeInsets.all(15),
-          crossAxisCount: MediaQuery.of(context).size.width ~/ 250,
-          mainAxisSpacing: 15,
-          crossAxisSpacing: 15,
-          children: _viewModel.allBoards
-              .map(
-                (e) => InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    _viewModel.setCurrentBoard(e);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const DrawingPage(),
+    return Consumer<IBoardViewModel>(
+      builder: (_, viewmodel, __) {
+        return Scaffold(
+          body: GridView.count(
+            padding: const EdgeInsets.all(15),
+            crossAxisCount: MediaQuery.of(context).size.width ~/ 250,
+            mainAxisSpacing: 15,
+            crossAxisSpacing: 15,
+            children: _viewModel.allBoards
+                .map(
+                  (e) => InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      _viewModel.setCurrentBoard(e);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const DrawingPage(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        maxHeight: 250,
+                        maxWidth: 250,
                       ),
-                    );
-                  },
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      maxHeight: 250,
-                      maxWidth: 250,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Spacer(),
-                        Container(
-                          height: 60,
-                          width: double.infinity,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(11),
-                              bottomRight: Radius.circular(11),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Spacer(),
+                          Container(
+                            height: 75,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(11),
+                                bottomRight: Radius.circular(11),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(15),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    e.name,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    DateFormat('hh:mm dd/MM/yyyy')
+                                        .format(e.createdTime),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Text(e.name),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              )
-              .toList(),
-        ),
-      );
-    });
+                )
+                .toList(),
+          ),
+        );
+      },
+    );
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'entities/base_entity.dart';
 import 'hive_constants.dart';
 
 class HiveDatabase {
@@ -23,7 +22,7 @@ class HiveDatabase {
     await _initBoxes();
   }
 
-  Box<T> getMyBox<T extends BaseEntity>() {
+  Box<T> getMyBox<T>() {
     return Hive.box<T>(HiveBoxMap.hiveBoxMap[T]?.boxName ?? '');
   }
 

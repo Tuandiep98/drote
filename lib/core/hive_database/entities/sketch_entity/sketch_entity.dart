@@ -26,7 +26,7 @@ class SketchEntity extends BaseEntity {
   int sides;
 
   SketchEntity({
-    String id = '',
+    required String id,
     required this.boardId,
     required this.createdTime,
     this.createdBy = '',
@@ -36,5 +36,7 @@ class SketchEntity extends BaseEntity {
     this.type = SketchType.scribble,
     this.filled = false,
     this.sides = 0,
-  });
+  }) : super() {
+    id = this.id;
+  }
 }
