@@ -8,4 +8,5 @@ abstract class IBoardService {
   Future<void> insertSketchToBoard(SketchEntity sketchEntity, String boardId);
   Future<void> removeSketch(SketchEntity sketchEntity);
   Future<void> clearSketchesOfBoard(String boardId);
+  Future<void> deleteBoard(String boardId);
 }

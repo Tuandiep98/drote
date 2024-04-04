@@ -36,4 +36,6 @@ abstract class IBoardViewModel extends ChangeNotifier {
 
   Future<void> init();
   Future<void> insertSketchToBoard(SketchEntity sketchEntity, String boardId);
+  Future<void> createNewBoard();
+  Future<void> deleteBoard(BoardEntity boardEntity);
 }

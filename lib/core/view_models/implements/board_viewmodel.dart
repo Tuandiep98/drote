@@ -158,9 +158,11 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
     _allBoards.clear();
     _allBoards = _boardService.getAllBoards();
 
+    _canRedo = false;
+    _currentSketch = null;
+
     if (_allBoards.isEmpty) {
       var newBoard = BoardEntity(
-        id: 'board-1',
         name: 'New Board',
         createdTime: DateTime.now(),
       );
@@ -174,5 +176,23 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   Future<void> insertSketchToBoard(
       SketchEntity sketchEntity, String boardId) async {
     await _boardService.insertSketchToBoard(sketchEntity, boardId);
+  }
+
+  @override
+  Future<void> createNewBoard() async {
+    var newBoard = BoardEntity(
+      name: 'New Board',
+      createdTime: DateTime.now(),
+    );
+    await _boardService.createBoard(newBoard);
+    _allBoards = [..._allBoards, newBoard];
+    notifyListeners();
+  }
+
+  @override
+  Future<void> deleteBoard(BoardEntity boardEntity) async {
+    _allBoards.remove(boardEntity);
+    await _boardService.deleteBoard(boardEntity.id);
+    notifyListeners();
   }
 }

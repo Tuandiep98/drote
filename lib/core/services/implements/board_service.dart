@@ -30,15 +30,21 @@ class BoardService implements IBoardService {
     sketchEntity.boardId = boardId;
     await _sketchDao.insert(sketchEntity);
   }
-  
+
   @override
   Future<void> removeSketch(SketchEntity sketchEntity) async {
     await _sketchDao.delete(sketchEntity.id);
   }
-  
+
   @override
   Future<void> clearSketchesOfBoard(String boardId) async {
-    List<SketchEntity> sketches = _sketchDao.getAll().where((x) => x.boardId == boardId).toList();
+    List<SketchEntity> sketches =
+        _sketchDao.getAll().where((x) => x.boardId == boardId).toList();
     await _sketchDao.deleteAll(sketches.map((e) => e.id).toList());
+  }
+
+  @override
+  Future<void> deleteBoard(String boardId) async {
+    await _boardDao.delete(boardId);
   }
 }

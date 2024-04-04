@@ -36,7 +36,5 @@ class SketchEntity extends BaseEntity {
     this.type = SketchType.scribble,
     this.filled = false,
     this.sides = 0,
-  }) : super() {
-    id = this.id;
-  }
+  }) : super(id: id);
 }

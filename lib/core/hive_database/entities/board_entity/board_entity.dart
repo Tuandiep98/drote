@@ -32,7 +32,5 @@ class BoardEntity extends BaseEntity {
     this.backgroundColor = '',
     this.width = 1000,
     this.height = 2000,
-  }) : super() {
-    id = this.id;
-  }
+  }) : super(id: id);
 }

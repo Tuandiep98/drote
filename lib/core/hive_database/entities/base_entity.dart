@@ -5,7 +5,7 @@ class BaseEntity {
   @HiveField(0)
   String id = '';
 
-  BaseEntity(){
+  BaseEntity({required this.id}){
     if(id == ''){
       id = const Uuid().v4();
     }
