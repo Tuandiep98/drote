@@ -57,12 +57,21 @@ class _DrawingPageState extends State<DrawingPage>
         return Stack(
           children: [
             Container(
-              color: kCanvasColor,
               width: double.maxFinite,
               height: double.maxFinite,
+              decoration: const BoxDecoration(
+                color: kCanvasColor,
+                image: DecorationImage(
+                  image: AssetImage("assets/images/G788_large.jpg"),
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
               child: DrawingCanvas(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
+                width: viewmodel.currentBoard?.width ??
+                    MediaQuery.of(context).size.width,
+                height: viewmodel.currentBoard?.height ??
+                    MediaQuery.of(context).size.height,
                 sideBarController: animationController,
                 canvasGlobalKey: canvasGlobalKey,
               ),

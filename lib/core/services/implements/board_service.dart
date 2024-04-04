@@ -21,7 +21,10 @@ class BoardService implements IBoardService {
 
   @override
   List<SketchEntity> getAllSketches(String boardId) {
-    return _sketchDao.getAll().where((x) => x.boardId == boardId).toList();
+    var result =
+        _sketchDao.getAll().where((x) => x.boardId == boardId).toList();
+    result.sort((a, b) => a.createdTime.compareTo(b.createdTime));
+    return result;
   }
 
   @override

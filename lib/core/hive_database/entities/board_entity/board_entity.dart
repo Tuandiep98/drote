@@ -30,7 +30,7 @@ class BoardEntity extends BaseEntity {
     required this.createdTime,
     this.backgroundImage = '',
     this.backgroundColor = '',
-    this.width = 1000,
-    this.height = 2000,
+    this.width = 1920,
+    this.height = 1080,
   }) : super(id: id);
 }

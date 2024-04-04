@@ -1,5 +1,5 @@
 import 'package:drote/core/view_models/interfaces/iboard_viewmodel.dart';
-import 'package:drote/screens/drawing_canvas/drawing_canvas.dart';
+// import 'package:drote/screens/drawing_canvas/drawing_canvas.dart';
 import 'package:drote/screens/drawing_screen/drawing_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -21,15 +21,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     _viewModel = context.read<IBoardViewModel>();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      await _viewModel.init();
-      // if (_viewModel.currentBoard != null) {
-      //   _viewModel.setCurrentBoard(_viewModel.currentBoard!);
-      //   Navigator.of(context).push(
-      //     MaterialPageRoute(
-      //       builder: (context) => const DrawingPage(),
-      //     ),
-      //   );
-      // }
+      await _viewModel.init(context.size ?? const Size(1920, 1080));
+      if (_viewModel.currentBoard != null) {
+        // ignore: use_build_context_synchronously
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const DrawingPage(),
+          ),
+        );
+      }
     });
     super.initState();
   }
@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
           floatingActionButton: FloatingActionButton(
             tooltip: 'Add new board',
             child: const Icon(Icons.add),
-            onPressed: () async => await _viewModel.createNewBoard(),
+            onPressed: () async => await _viewModel.createNewBoard(context.size ?? const Size(1920, 1080)),
           ),
           body: Scrollbar(
             child: GridView.count(
@@ -74,18 +74,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Stack(
                           children: [
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final maxWidth = constraints.maxWidth;
-                                final maxHeight = constraints.maxHeight;
-                                return CustomPaint(
-                                  size: Size(maxWidth, maxHeight),
-                                  painter: SketchPainter(
-                                    sketches: viewmodel.allSketches,
-                                  ),
-                                );
-                              },
-                            ),
+                            // SizedBox(
+                            //   width: 50,
+                            //   height: 50,
+                            //   child: CustomPaint(
+                            //     size: const Size(10, 50),
+                            //     painter: SketchPainter(
+                            //       sketches: viewmodel.allSketches,
+                            //     ),
+                            //   ),
+                            // ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

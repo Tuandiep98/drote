@@ -154,7 +154,7 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   }
 
   @override
-  Future<void> init() async {
+  Future<void> init(Size size) async {
     _allBoards.clear();
     _allBoards = _boardService.getAllBoards();
 
@@ -165,6 +165,8 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
       var newBoard = BoardEntity(
         name: 'New Board',
         createdTime: DateTime.now(),
+        width: size.width,
+        height: size.height,
       );
       await _boardService.createBoard(newBoard);
       _currentBoard = newBoard;
@@ -179,10 +181,12 @@ class BoardViewModel extends ChangeNotifier implements IBoardViewModel {
   }
 
   @override
-  Future<void> createNewBoard() async {
+  Future<void> createNewBoard(Size size) async {
     var newBoard = BoardEntity(
       name: 'New Board',
       createdTime: DateTime.now(),
+      width: size.width,
+      height: size.height,
     );
     await _boardService.createBoard(newBoard);
     _allBoards = [..._allBoards, newBoard];

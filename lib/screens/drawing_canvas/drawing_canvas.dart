@@ -11,6 +11,7 @@ import 'package:drote/screens/drawing_canvas/models/drawing_mode.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zoom_widget/zoom_widget.dart';
 
 class DrawingCanvas extends StatefulWidget {
   final double height;
@@ -30,6 +31,7 @@ class DrawingCanvas extends StatefulWidget {
 
 class DrawingCanvasState extends State<DrawingCanvas> {
   late IBoardViewModel _viewModel;
+  bool isSketching = true;
 
   @override
   void initState() {
@@ -41,47 +43,63 @@ class DrawingCanvasState extends State<DrawingCanvas> {
   Widget build(BuildContext context) {
     return Consumer<IBoardViewModel>(
       builder: (_, viewmodel, __) {
-        return MouseRegion(
-          cursor: SystemMouseCursors.precise,
-          child: Stack(
-            children: [
-              SizedBox(
-                height: widget.height,
-                width: widget.width,
-                child: RepaintBoundary(
-                  key: widget.canvasGlobalKey,
-                  child: Container(
-                    height: widget.height,
-                    width: widget.width,
-                    color: kCanvasColor,
-                    child: CustomPaint(
-                      painter: SketchPainter(
-                        sketches: viewmodel.allSketches,
-                        backgroundImage: viewmodel.backgroundImage,
+        return Zoom(
+          enableScroll: false,
+          initTotalZoomOut: true,
+          onPositionUpdate: (offset) {},
+          onScaleUpdate: (p0, p1) {
+            setState(() {
+              isSketching = p1.round() == 1;
+            });
+          },
+          child: MouseRegion(
+            cursor: isSketching
+                ? SystemMouseCursors.precise
+                : SystemMouseCursors.grab,
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                  child: RepaintBoundary(
+                    key: widget.canvasGlobalKey,
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      color: kCanvasColor,
+                      child: CustomPaint(
+                        painter: SketchPainter(
+                          sketches: viewmodel.allSketches,
+                          backgroundImage: viewmodel.backgroundImage,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Listener(
-                onPointerDown: (details) => onPointerDown(details, context),
-                onPointerMove: (details) => onPointerMove(details, context),
-                onPointerUp: onPointerUp,
-                child: RepaintBoundary(
-                  child: SizedBox(
-                    height: widget.height,
-                    width: widget.width,
-                    child: CustomPaint(
-                      painter: SketchPainter(
-                        sketches: viewmodel.currentSketch == null
-                            ? []
-                            : [viewmodel.currentSketch!],
+                Listener(
+                  onPointerDown: isSketching
+                      ? (details) => onPointerDown(details, context)
+                      : (details) {},
+                  onPointerMove: isSketching
+                      ? (details) => onPointerMove(details, context)
+                      : (details) {},
+                  onPointerUp: isSketching ? onPointerUp : (event) {},
+                  child: RepaintBoundary(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      child: CustomPaint(
+                        painter: SketchPainter(
+                          sketches: viewmodel.currentSketch == null
+                              ? []
+                              : [viewmodel.currentSketch!],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

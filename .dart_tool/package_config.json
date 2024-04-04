@@ -812,13 +812,19 @@
       "languageVersion": "2.19"
     },
     {
+      "name": "zoom_widget",
+      "rootUri": "file:///C:/Users/user/AppData/Local/Pub/Cache/hosted/pub.dev/zoom_widget-2.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "drote",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     }
   ],
-  "generated": "2024-04-04T06:40:18.221545Z",
+  "generated": "2024-04-04T09:48:59.476279Z",
   "generator": "pub",
   "generatorVersion": "3.2.6"
 }
